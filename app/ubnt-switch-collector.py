@@ -7,6 +7,7 @@ import logging
 import paramiko
 import socket
 import sys
+import time
 import yaml
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from influxdb import InfluxDBClient
@@ -166,6 +167,11 @@ def main():
     args = get_args()
     # Load configure file
     config = load_yaml_file(args.config)
+
+    # We will be running this container in the same docker-compose configuration
+    # as influxdb. To ensure we provide enough time for influxdb to start,
+    # we wait 10 seconds
+    time.sleep(10)
 
     # Make a connection to the InfluxDB Database
     # Create a new database if it doesn't exist
