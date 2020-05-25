@@ -1,0 +1,29 @@
+---
+InfluxDb:
+  'Host': 'localhost'
+  'Port': '8086'
+  'Database': 'ubnt-switch-collector'
+Switch:
+  'Name': 'switch'
+  'Host': '192.168.0.2'
+  'User': 'admin'
+  'PrivKeyFile': '/key/id_rsa'
+InterfaceDesc:
+  "1": "port_1_desc"
+  "2": "port_2_desc"
+  "3": "port_3_desc"
+  "4": "port_4_desc"
+  "5": "port_5_desc"
+  "6": "port_6_desc"
+  "7": "port_7_desc"
+  "8": "port_8_desc"
+  "9": "port_9_desc"
+  "10": "port_10_desc"
+  "11": "port_11_desc"
+  "12": "port_12_desc"
+  "13": "port_13_desc"
+  "14": "port_14_desc"
+  "15": "port_15_desc"
+  "16": "port_16_desc"
+  "17": "port_17_desc"
+  "18": "port_18_desc"

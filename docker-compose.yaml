@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+  flake8:
+    image: wonkyto/ubnt-switch-collector:1.0.0
+    command: flake8
+    volumes:
+      - ./app:/app
+    working_dir: /app
+  run:
+    image: wonkyto/ubnt-switch-collector:1.0.0
+    volumes:
+      - ./config:/config
+      - ./key:/key
+    working_dir: /app
+  test:
+    image: wonkyto/ubnt-switch-collector:1.0.0
+    volumes:
+      - ./app:/app
+      - ./config:/config
+      - ./key:/key
+    working_dir: /app
