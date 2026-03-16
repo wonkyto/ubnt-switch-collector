@@ -92,12 +92,20 @@ def parse_port_data(data):
     """
     interface = {}
     for line in data:
+        line = line.strip()
+        if not line:
+            continue
         bits = line.split(",")
-        port_num = bits[0].split("=")[1]
+        port_parts = bits[0].split("=")
+        if len(port_parts) != 2:
+            logger.warning("Skipping malformed line: {}".format(line))
+            continue
+        port_num = port_parts[1]
         port = {}
         for bit in bits[1:]:
-            # Build up interface port dict
-            key, value = bit.split("=")
+            if "=" not in bit:
+                continue
+            key, value = bit.split("=", 1)
             port[key] = value
         interface[port_num] = port
     return interface
@@ -111,10 +119,14 @@ def prepare_port_data(poll_time, port_data, switch, if_desc):
     if_metrics = []
 
     for port_num in port_data:
+        if port_num not in if_desc:
+            logger.warning("Port {} not found in InterfaceDesc, skipping".format(port_num))
+            continue
         status = 1 if port_data[port_num]['link'] == 'up' else 0
 
         interface = {
             'measurement': 'interface',
+            'time': poll_time,
             'tags': {
                 'host': switch['Name'],
                 'ifDesc': if_desc[port_num]
