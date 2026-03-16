@@ -23,6 +23,7 @@ During development, use `make test` to avoid rebuilding the image after each cha
 
 - `config/config.yaml` — InfluxDB connection, switch host/user/key path, and per-port interface descriptions (see `config/config.yaml` for example structure)
 - `key/id_rsa` — RSA private key for SSH access to the switch's `admin` user
+- `key/known_hosts` — switch host key for SSH verification; generate with `ssh-keyscan <switch-ip> >> key/known_hosts`
 
 ## Architecture
 

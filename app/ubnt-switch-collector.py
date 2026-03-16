@@ -49,7 +49,7 @@ def run_cmd(host, user, ssh_private_key, command):
 
     # Make an ssh connection
     ssh = paramiko.SSHClient()
-    ssh.load_system_host_keys()
+    ssh.load_host_keys('/key/known_hosts')
     ssh.set_missing_host_key_policy(paramiko.RejectPolicy())
     private_key = paramiko.RSAKey.from_private_key_file(ssh_private_key)
     try:
@@ -183,7 +183,7 @@ def main():
 
     # Retry connecting to InfluxDB until it's ready (e.g. when starting via docker-compose)
     influx_client = InfluxDBClient(host=config['InfluxDb']['Host'],
-                                   port=config['InfluxDb']['Port'])
+                                   port=int(config['InfluxDb']['Port']))
     for attempt in range(1, 11):
         try:
             influx_client.create_database(config['InfluxDb']['Database'])

@@ -36,3 +36,9 @@ Here we define the following:
  * InterfaceDesc: Some human descriptions of your ports (these might be on your Unifi Controller, but I didn't bother to figure out how to extract)
 ### key/id_rsa
 This should be the private key which gives access to your admin user on your Unifi devices
+
+### key/known_hosts
+This should contain the host key for your switch, used to verify the SSH connection. Generate it with:
+```bash
+ssh-keyscan <switch-ip> >> key/known_hosts
+```
