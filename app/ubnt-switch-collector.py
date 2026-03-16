@@ -49,7 +49,8 @@ def run_cmd(host, user, ssh_private_key, command):
 
     # Make an ssh connection
     ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.load_system_host_keys()
+    ssh.set_missing_host_key_policy(paramiko.RejectPolicy())
     private_key = paramiko.RSAKey.from_private_key_file(ssh_private_key)
     try:
         ssh.connect(host, username=user, pkey=private_key, timeout=5)
@@ -180,17 +181,21 @@ def main():
     # Load configure file
     config = load_yaml_file(args.config)
 
-    # We will be running this container in the same docker-compose configuration
-    # as influxdb. To ensure we provide enough time for influxdb to start,
-    # we wait 10 seconds
-    time.sleep(10)
-
-    # Make a connection to the InfluxDB Database
-    # Create a new database if it doesn't exist
+    # Retry connecting to InfluxDB until it's ready (e.g. when starting via docker-compose)
     influx_client = InfluxDBClient(host=config['InfluxDb']['Host'],
                                    port=config['InfluxDb']['Port'])
-    influx_client.create_database(config['InfluxDb']['Database'])
-    influx_client.switch_database(config['InfluxDb']['Database'])
+    for attempt in range(1, 11):
+        try:
+            influx_client.create_database(config['InfluxDb']['Database'])
+            influx_client.switch_database(config['InfluxDb']['Database'])
+            logger.info("Connected to InfluxDB")
+            break
+        except Exception as e:
+            logger.warning("InfluxDB not ready (attempt {}/10): {}".format(attempt, e))
+            if attempt == 10:
+                logger.error("Could not connect to InfluxDB after 10 attempts, exiting")
+                sys.exit(1)
+            time.sleep(5)
 
     # Create a scheduler, and run the poller every 1 minute on the minute
     scheduler = AsyncIOScheduler()
@@ -204,8 +209,8 @@ def main():
         asyncio.get_event_loop().run_forever()
     except (KeyboardInterrupt, SystemExit):
         pass
-
-    influx_client.close()
+    finally:
+        influx_client.close()
 
 
 if __name__ == '__main__':
