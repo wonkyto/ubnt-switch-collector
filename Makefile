@@ -1,11 +1,26 @@
-VERSION = 1.0.1
+VERSION = 1.1.0
 IMAGE_NAME ?= wonkyto/ubnt-switch-collector:$(VERSION)
 
 build:
-	docker build -t $(IMAGE_NAME) .
-flake8:
-	docker-compose run --rm flake8
+	docker build --target production -t $(IMAGE_NAME) .
+
+build-pi:
+	docker buildx build --target production --platform linux/arm64 -t $(IMAGE_NAME) --push .
+
+build-all:
+	docker buildx build --target production --platform linux/amd64,linux/arm64 -t $(IMAGE_NAME) --push .
+
+lint:
+	docker-compose run --rm lint
+
+format:
+	docker-compose run --rm format
+
+pytest:
+	docker-compose run --rm pytest
+
 run:
 	docker-compose run --rm run
+
 test:
 	docker-compose run --rm test
