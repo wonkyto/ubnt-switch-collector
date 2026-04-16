@@ -1,44 +1,71 @@
 # ubnt-switch-collector
-I recently purchased a Ubiquiti Unifi USW-16-POE switch. Unfortunately, unlike the Gen 1 switches it does not have adequate SNMP support to collect interface metrics. 
 
-So I wrote a small interface metric collector in python that could connect to the switch, collect the metrics, and then send to an influxDB endpoint.
+A small interface metric collector for Ubiquiti Unifi switches (specifically USW-16-POE) that lack adequate SNMP support. It SSHes into the switch, reads `/proc/port/all`, and writes interface metrics to InfluxDB every minute.
+
 ## Docker
-Development has been done using docker to facilitate a standard environment.
-### Building the docker image
-The docker image can be built in the following way:
+
+All development uses Docker.
+
+### Build
+
 ```bash
-make build
+make build         # Build production image (amd64)
+make build-pi      # Build and push arm64 image (Raspberry Pi)
+make build-all     # Build and push amd64 + arm64 multi-arch image
 ```
-You'll want to build the image when you have finished development, or if you make any changes to the Dockerfile including python dependencies
-### Testing the script
-During development it is time consuming to build a new container, so you can simply mount the script into the existing container for testing. The python script can be tested in the following way:
+
+> `build-pi` and `build-all` require `docker buildx`. Install via `brew install docker-buildx`, then:
+>
+> ```bash
+> mkdir -p ~/.docker/cli-plugins
+> ln -sfn /opt/homebrew/opt/docker-buildx/bin/docker-buildx ~/.docker/cli-plugins/docker-buildx
+> docker buildx create --name multiplatform --driver docker-container --use
+> docker buildx inspect --bootstrap
+> ```
+
+### Development
+
+During development, use `make test` to avoid rebuilding the image — it mounts `./app` directly into the container:
+
 ```bash
 make test
 ```
-### Linting the script
-During development you can run flake8 on the script:
+
+### Lint and format
+
 ```bash
-make flake8
+make lint      # ruff check
+make format    # ruff format --check
 ```
 
-### Running the script
-Once you have finished development, build the docker image, and run it using:
+### Tests
+
+```bash
+make pytest
+```
+
+### Run
+
+Once you've built the image:
+
 ```bash
 make run
 ```
 
 ## Configuration
-The container requires both a configuration file to be present, and also an ssh private key which gives access to the admin user on your Unifi devices.
+
 ### config/config.yaml
-Here we define the following:
- * InfluxDb: Your InfluxDB endpoint and db
- * Switch: The name, ip/hostname and user credentials of your Unifi switch
- * InterfaceDesc: Some human descriptions of your ports (these might be on your Unifi Controller, but I didn't bother to figure out how to extract)
+
+Defines the InfluxDB endpoint, switch connection details, and human-readable port descriptions. See `config/config.yaml` for the example structure.
+
 ### key/id_rsa
-This should be the private key which gives access to your admin user on your Unifi devices
+
+RSA private key for SSH access to the `admin` user on the switch.
 
 ### key/known_hosts
-This should contain the host key for your switch, used to verify the SSH connection. Generate it with:
+
+Switch host key for SSH verification. Generate with:
+
 ```bash
 ssh-keyscan <switch-ip> >> key/known_hosts
 ```

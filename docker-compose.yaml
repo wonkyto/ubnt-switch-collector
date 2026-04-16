@@ -1,19 +1,40 @@
-version: "3.7"
 services:
-  flake8:
-    image: wonkyto/ubnt-switch-collector:1.0.0
-    command: flake8
+  lint:
+    build:
+      context: .
+      target: dev
+    command: ruff check /app
     volumes:
       - ./app:/app
-    working_dir: /app
+
+  format:
+    build:
+      context: .
+      target: dev
+    command: ruff format --check /app
+    volumes:
+      - ./app:/app
+
+  pytest:
+    build:
+      context: .
+      target: dev
+    command: pytest /tests
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ./app:/app
+      - ./tests:/tests
+
   run:
-    image: wonkyto/ubnt-switch-collector:1.0.0
+    image: wonkyto/ubnt-switch-collector:1.1.0
     volumes:
       - ./config:/config
       - ./key:/key
     working_dir: /app
+
   test:
-    image: wonkyto/ubnt-switch-collector:1.0.0
+    image: wonkyto/ubnt-switch-collector:1.1.0
     volumes:
       - ./app:/app
       - ./config:/config
